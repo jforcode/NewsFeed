@@ -1,13 +1,26 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:background="#efefef"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="com.jeevan.inshorts.HomePageFragment">
+    android:layout_height="match_parent">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/news_feed_swipe_refresh"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        tools:context="com.jeevan.inshorts.fragments.HomePageFragment">
 
-</FrameLayout>
+        <android.support.v7.widget.RecyclerView
+            android:padding="16dp"
+            android:id="@+id/news_feed_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </android.support.v4.widget.SwipeRefreshLayout>
+
+    <include layout="@layout/layout_no_internet"
+        android:visibility="invisible"
+        android:id="@+id/error_layout" />
+
+</RelativeLayout>

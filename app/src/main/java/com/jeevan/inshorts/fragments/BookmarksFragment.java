@@ -1,4 +1,4 @@
-package com.jeevan.inshorts;
+package com.jeevan.inshorts.fragments;
 
 
 import android.os.Bundle;
@@ -7,14 +7,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.jeevan.inshorts.R;
+
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class HomePageFragment extends Fragment {
+public class BookmarksFragment extends Fragment {
 
 
-    public HomePageFragment() {
+    public BookmarksFragment() {
         // Required empty public constructor
     }
 
@@ -23,7 +25,7 @@ public class HomePageFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_home_page, container, false);
+        return inflater.inflate(R.layout.fragment_bookmarks, container, false);
     }
 
 }
