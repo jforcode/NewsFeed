@@ -15,6 +15,8 @@ import butterknife.ButterKnife;
 public class MainActivity extends AppCompatActivity {
     @BindView(R.id.toolbar)
     Toolbar toolbar;
+    @BindView(R.id.tabLayout)
+    TabLayout tabLayout;
     @BindView(R.id.viewPager)
     ViewPager viewPager;
 
@@ -26,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
 
         setSupportActionBar(toolbar);
         viewPager.setAdapter(new HomePageAdapter(getSupportFragmentManager()));
-        // tabLayout.setupWithViewPager(viewPager);
+        tabLayout.setupWithViewPager(viewPager);
 
     }
 }

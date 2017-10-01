@@ -78,6 +78,13 @@ public class NewsFeedAdapter extends RecyclerView.Adapter<NewsFeedAdapter.NewsFe
         return newsFeeds.size();
     }
 
+    public void addItems(List<NewsFeed> newsFeeds) {
+        int itemCount = this.newsFeeds.size();
+        this.newsFeeds.addAll(newsFeeds);
+        notifyItemRangeInserted(itemCount, getItemCount());
+        notifyItemRangeChanged(itemCount, getItemCount());
+    }
+
     class NewsFeedViewHolder extends RecyclerView.ViewHolder {
         @BindView(R.id.li_home_news)
         CardView parent;

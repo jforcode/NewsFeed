@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName;
 
 /**
  * Created by jeevan on 9/14/17.
+ _id: id for local database
  ID : the numeric ID of the article
  TITLE : the headline of the article
  URL : the URL of the article
@@ -14,6 +15,7 @@ import com.google.gson.annotations.SerializedName;
  */
 
 public class NewsFeed {
+    private long _id;
     @SerializedName("ID")
     private long id;
     @SerializedName("TITLE")
@@ -28,6 +30,14 @@ public class NewsFeed {
     private String hostName;
     @SerializedName("TIMESTAMP")
     private long timeStamp;
+
+    public long get_id() {
+        return _id;
+    }
+
+    public void set_id(long _id) {
+        this._id = _id;
+    }
 
     public long getId() {
         return id;

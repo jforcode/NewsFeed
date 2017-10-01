@@ -1,8 +1,10 @@
 package com.jeevan.inshorts.fragments;
 
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,9 +16,11 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.jeevan.inshorts.R;
+import com.jeevan.inshorts.adapters.EndlessRecyclerViewScrollListener;
 import com.jeevan.inshorts.adapters.NewsFeedAdapter;
 import com.jeevan.inshorts.api.NewsAPI;
 import com.jeevan.inshorts.api.NewsAPIClient;
+import com.jeevan.inshorts.dao.DbTransactions;
 import com.jeevan.inshorts.dao.NewsFeed;
 
 import java.io.IOException;
@@ -47,6 +51,11 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
     Button btnTryAgain;
 
     Context context;
+    DbTransactions dbTransactions;
+
+    EndlessRecyclerViewScrollListener scrollListener;
+    ProgressDialog progressDialog;
+    int DEFAULT_RECORD_SIZE = 20;
 
     public HomePageFragment() {
         // Required empty public constructor
@@ -59,9 +68,19 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
         View view = inflater.inflate(R.layout.fragment_home_page, container, false);
         ButterKnife.bind(this, view);
 
+        dbTransactions = DbTransactions.getDbInstance(getActivity());
+
         newsFeedAdapter = new NewsFeedAdapter(getActivity());
         newsFeedList.setAdapter(newsFeedAdapter);
-        newsFeedList.setLayoutManager(new LinearLayoutManager(getActivity()));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
+        newsFeedList.setLayoutManager(layoutManager);
+        scrollListener = new EndlessRecyclerViewScrollListener(layoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+                loadPageFromDB(page);
+            }
+        };
+        newsFeedList.addOnScrollListener(scrollListener);
         newsFeedRefreshLayout.setOnRefreshListener(this);
 
         return view;
@@ -71,10 +90,15 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
     public void onAttach(Context context) {
         super.onAttach(context);
         this.context = context;
-        refreshFeed(false);
     }
 
-    private void refreshFeed(final boolean fromSwipeToRefresh) {
+    @Override
+    public void onResume() {
+        super.onResume();
+        refreshFeed();
+    }
+
+    private void refreshFeed() {
         // retrofit to fetch the data
         NewsAPI client = NewsAPIClient.getRetrofit().create(NewsAPI.class);
         Call<List<NewsFeed>> call = client.getNewsFeed();
@@ -85,7 +109,8 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
                     errorLayout.setVisibility(View.INVISIBLE);
                     newsFeedRefreshLayout.setVisibility(View.VISIBLE);
                     List<NewsFeed> newsFeed = response.body();
-                    newsFeedAdapter.setNewsFeed(newsFeed);
+                    dbTransactions.saveNewsFeed(newsFeed);
+                    loadPageFromDB(1);
 
                 } else {
                     newsFeedAdapter.setNewsFeed(null);
@@ -97,8 +122,9 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
                         txtError.setText(R.string.generic_error_msg);
                     }
                 }
-                if (fromSwipeToRefresh) {
-                    newsFeedRefreshLayout.setRefreshing(false);
+                newsFeedRefreshLayout.setRefreshing(false);
+                if (progressDialog != null) {
+                    progressDialog.cancel();
                 }
             }
 
@@ -109,8 +135,9 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
                 newsFeedRefreshLayout.setVisibility(View.INVISIBLE);
                 // TODO: check wether it is an internet error
                 txtError.setText(R.string.no_internet_error_msg);
-                if (fromSwipeToRefresh) {
-                    newsFeedRefreshLayout.setRefreshing(false);
+                newsFeedRefreshLayout.setRefreshing(false);
+                if (progressDialog != null) {
+                    progressDialog.cancel();
                 }
             }
         });
@@ -118,11 +145,22 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
 
     @OnClick(R.id.btn_try_again)
     public void tryAgain(View view) {
-        refreshFeed(true);
+        refreshFeed();
     }
 
     @Override
     public void onRefresh() {
-        refreshFeed(true);
+        refreshFeed();
+    }
+
+    private void loadPageFromDB(final int pageNum) {
+        // dummy delay to show infinite scrolling
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                newsFeedAdapter.addItems(dbTransactions.getNewsFeed(DEFAULT_RECORD_SIZE, pageNum));
+            }
+        }, 2000);
     }
 }
