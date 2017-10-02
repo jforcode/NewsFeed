@@ -19,17 +19,20 @@ public class DbHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(NewsFeedTable.CREATE_QUERY);
+        db.execSQL(BookmarksTable.CREATE_QUERY);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL(NewsFeedTable.DELETE_QUERY);
+        db.execSQL(BookmarksTable.DELETE_QUERY);
         onCreate(db);
     }
 
     @Override
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL(NewsFeedTable.DELETE_QUERY);
+        db.execSQL(BookmarksTable.DELETE_QUERY);
         onCreate(db);
     }
 }

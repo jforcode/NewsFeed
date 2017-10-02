@@ -21,12 +21,12 @@ import java.util.List;
  * Created by jeevan on 9/14/17.
  */
 
-public class NewsFeedAdapter extends RecyclerView.Adapter<NewsFeedViewHolder> {
+public class BookmarksAdapter extends RecyclerView.Adapter<NewsFeedViewHolder> {
     Context context;
     List<NewsFeed> newsFeeds;
     BookmarkEventListener bookmarkEventListener;
 
-    public NewsFeedAdapter(Context context) {
+    public BookmarksAdapter(Context context) {
         this.context = context;
         this.newsFeeds = new ArrayList<>();
         if (context instanceof BookmarkEventListener) {
@@ -47,8 +47,7 @@ public class NewsFeedAdapter extends RecyclerView.Adapter<NewsFeedViewHolder> {
         return new NewsFeedViewHolder(LayoutInflater.from(context).inflate(R.layout.li_home_news, parent, false));
     }
 
-    @Override
-    public void onBindViewHolder(final NewsFeedViewHolder holder, int position) {
+    public void onBindViewHolder(final NewsFeedViewHolder holder, final int position) {
         final NewsFeed news = newsFeeds.get(position);
         holder.txtTitle.setText(news.getTitle());
         holder.txtPublisher.setText(news.getPublisher());
@@ -56,21 +55,14 @@ public class NewsFeedAdapter extends RecyclerView.Adapter<NewsFeedViewHolder> {
             @Override
             public void onClick(View v) {
                 news.setBookmarked(!news.isBookmarked());
-                if (news.isBookmarked()) {
-                    Toast.makeText(context, "Added Bookmark - " + news.getTitle(), Toast.LENGTH_SHORT).show();
-                    holder.imgBookmark.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.star_filled));
-                } else {
-                    Toast.makeText(context, "Removed bookmark - " + news.getTitle(), Toast.LENGTH_SHORT).show();
-                    holder.imgBookmark.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.star_blank));
-                }
+                Toast.makeText(context, "Removed bookmark - " + news.getTitle(), Toast.LENGTH_SHORT).show();
                 bookmarkEventListener.bookmark(news);
+                int changedCount = getItemCount() - position;
+                newsFeeds.remove(position);
+                notifyItemRemoved(position);
+                notifyItemRangeChanged(position, changedCount);
             }
         });
-        if (news.isBookmarked()) {
-            holder.imgBookmark.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.star_filled));
-        } else {
-            holder.imgBookmark.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.star_blank));
-        }
         holder.parent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -83,13 +75,6 @@ public class NewsFeedAdapter extends RecyclerView.Adapter<NewsFeedViewHolder> {
     @Override
     public int getItemCount() {
         return newsFeeds.size();
-    }
-
-    public void addItems(List<NewsFeed> newsFeeds) {
-        int itemCount = this.newsFeeds.size();
-        this.newsFeeds.addAll(newsFeeds);
-        notifyItemRangeInserted(itemCount, getItemCount());
-        notifyItemRangeChanged(itemCount, getItemCount());
     }
 
 }

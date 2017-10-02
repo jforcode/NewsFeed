@@ -27,4 +27,6 @@ public class NewsFeedTable {
             ")";
 
     public static final String DELETE_QUERY = "DROP TABLE IF EXISTS " + TABLE_NAME;
+
+    public static final String CLEAR_QUERY = "DELETE FROM " + TABLE_NAME;
 }

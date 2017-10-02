@@ -1,0 +1,10 @@
+Things to do:
+
+- webview
+- bookmarks
+- sort by time
+- filter by category
+- show category on top of list items
+- process for grouping on time
+- use drawerLayout for a Image, Home, Bookmarks, Credits (icons and stuff), Settings (maybe)
+- offline view (prioritize for last, anyway currently everything is being done from local db)

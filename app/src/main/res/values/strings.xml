@@ -5,4 +5,6 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="generic_error_msg">Some error occured. Please try again!</string>
     <string name="no_internet_error_msg">Couldn\'t connect to the internet. Please check your internet connection and try again!</string>
+    <string name="drawer_close">Close</string>
+    <string name="drawer_open">Open</string>
 </resources>

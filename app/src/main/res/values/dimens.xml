@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="general_margin">16dp</dimen>
+    <dimen name="nav_drawer_width">320dp</dimen>
+    <dimen name="nav_drawer_img_height">180dp</dimen>
+    <dimen name="profile_img_dimen">64dp</dimen>
+</resources>

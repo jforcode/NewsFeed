@@ -1,4 +1,4 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="#EEEEEE"
@@ -13,15 +13,25 @@
 
         <android.support.v7.widget.RecyclerView
             android:clipToPadding="false"
-            android:padding="16dp"
+            android:paddingBottom="64dp"
             android:id="@+id/news_feed_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
     </android.support.v4.widget.SwipeRefreshLayout>
 
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/btn_go_to_top"
+        android:visibility="gone"
+        android:src="@drawable/ic_arrow_upward_white_24dp"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/general_margin"
+        app:fabSize="mini"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
     <include layout="@layout/layout_no_internet"
         android:visibility="invisible"
         android:id="@+id/error_layout" />
 
-</RelativeLayout>
+</android.support.design.widget.CoordinatorLayout>

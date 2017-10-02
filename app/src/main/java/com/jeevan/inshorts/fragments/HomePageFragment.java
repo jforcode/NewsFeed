@@ -5,11 +5,14 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -22,6 +25,8 @@ import com.jeevan.inshorts.api.NewsAPI;
 import com.jeevan.inshorts.api.NewsAPIClient;
 import com.jeevan.inshorts.dao.DbTransactions;
 import com.jeevan.inshorts.dao.NewsFeed;
+import com.jeevan.inshorts.interfaces.BookmarkEventListener;
+import com.jeevan.inshorts.interfaces.MainActivityChangeListener;
 
 import java.io.IOException;
 import java.util.List;
@@ -49,6 +54,8 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
     TextView txtError;
     @BindView(R.id.btn_try_again)
     Button btnTryAgain;
+    @BindView(R.id.btn_go_to_top)
+    FloatingActionButton btnScrollToTop;
 
     Context context;
     DbTransactions dbTransactions;
@@ -69,6 +76,9 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
         ButterKnife.bind(this, view);
 
         dbTransactions = DbTransactions.getDbInstance(getActivity());
+        if (context instanceof MainActivityChangeListener) {
+            ((MainActivityChangeListener) context).setToolbarTitle("Home");
+        }
 
         newsFeedAdapter = new NewsFeedAdapter(getActivity());
         newsFeedList.setAdapter(newsFeedAdapter);
@@ -79,9 +89,20 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
             public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
                 loadPageFromDB(page);
             }
+
+            @Override
+            public void toggleScrollToTopButton(boolean visible) {
+                if (visible) {
+                    btnScrollToTop.setVisibility(View.VISIBLE);
+                } else {
+                    btnScrollToTop.setVisibility(View.GONE);
+                }
+            }
         };
         newsFeedList.addOnScrollListener(scrollListener);
         newsFeedRefreshLayout.setOnRefreshListener(this);
+
+        refreshFeed();
 
         return view;
     }
@@ -95,7 +116,6 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
     @Override
     public void onResume() {
         super.onResume();
-        refreshFeed();
     }
 
     private void refreshFeed() {
@@ -110,6 +130,7 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
                     newsFeedRefreshLayout.setVisibility(View.VISIBLE);
                     List<NewsFeed> newsFeed = response.body();
                     dbTransactions.saveNewsFeed(newsFeed);
+                    newsFeedAdapter.setNewsFeed(null);
                     loadPageFromDB(1);
 
                 } else {
@@ -148,6 +169,16 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
         refreshFeed();
     }
 
+    @OnClick(R.id.btn_go_to_top)
+    public void scrollToTop(View view) {
+        if (newsFeedAdapter.getItemCount() > 0) {
+            if (newsFeedAdapter.getItemCount() > 20) {
+                newsFeedList.scrollToPosition(20);
+            }
+            newsFeedList.smoothScrollToPosition(0);
+        }
+    }
+
     @Override
     public void onRefresh() {
         refreshFeed();
@@ -159,8 +190,9 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                newsFeedAdapter.addItems(dbTransactions.getNewsFeed(DEFAULT_RECORD_SIZE, pageNum));
+                newsFeedAdapter.addItems(dbTransactions.getNewsFeed(DEFAULT_RECORD_SIZE, pageNum, null));
             }
         }, 2000);
     }
+
 }
