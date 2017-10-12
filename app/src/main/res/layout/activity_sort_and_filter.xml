@@ -1,9 +1,145 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.jeevan.inshorts.activities.SortAndFilterActivity">
+    tools:context="com.jeevan.inshorts.activities.FilterActivity">
 
-</android.support.constraint.ConstraintLayout>
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/appbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?android:attr/actionBarSize"
+            app:popupTheme="@style/AppTheme.PopupOverlay">
+
+        </android.support.v7.widget.Toolbar>
+
+    </android.support.design.widget.AppBarLayout>
+
+    <RelativeLayout
+        android:background="#EEEEEE"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+                <LinearLayout
+                    android:id="@+id/layout_filter"
+                    android:background="#FFFFFF"
+                    android:orientation="vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:id="@+id/lbl_filter"
+                        android:text="Filter"
+                        android:textStyle="bold"
+                        android:textColor="@android:color/primary_text_light"
+                        android:layout_marginLeft="@dimen/general_margin"
+                        android:layout_marginTop="@dimen/general_margin"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <!--now, since only one filter, with only 4 values, so kinda hardcoding
+                        should be making it as a expandable recycler view for general filter pattern impl
+                        make your own library for an expandable recycler view -->
+                    <TextView
+                        android:id="@+id/txt_filter_category"
+                        android:text="Category"
+                        android:textColor="@android:color/primary_text_light"
+                        android:layout_below="@id/lbl_filter"
+                        android:padding="@dimen/general_margin"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <CheckBox
+                        android:id="@+id/cb_cat_busns"
+                        android:layoutDirection="rtl"
+                        android:text="Business"
+                        android:layout_below="@id/lbl_filter"
+                        android:layout_marginLeft="@dimen/general_margin"
+                        android:layout_marginRight="@dimen/general_margin"
+                        android:paddingLeft="@dimen/general_margin"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <CheckBox
+                        android:id="@+id/cb_cat_tech"
+                        android:layoutDirection="rtl"
+                        android:text="Science &amp; Technology"
+                        android:layout_below="@id/lbl_filter"
+                        android:layout_marginLeft="@dimen/general_margin"
+                        android:layout_marginRight="@dimen/general_margin"
+                        android:paddingLeft="@dimen/general_margin"
+                        android:layout_marginTop="8dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <CheckBox
+                        android:id="@+id/cb_cat_entr"
+                        android:layoutDirection="rtl"
+                        android:text="Entertainment"
+                        android:layout_below="@id/lbl_filter"
+                        android:layout_marginLeft="@dimen/general_margin"
+                        android:layout_marginRight="@dimen/general_margin"
+                        android:paddingLeft="@dimen/general_margin"
+                        android:layout_marginTop="8dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <CheckBox
+                        android:id="@+id/cb_cat_sports"
+                        android:layoutDirection="rtl"
+                        android:text="News"
+                        android:layout_below="@id/lbl_filter"
+                        android:layout_marginLeft="@dimen/general_margin"
+                        android:layout_marginRight="@dimen/general_margin"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="@dimen/general_margin"
+                        android:paddingLeft="@dimen/general_margin"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                </LinearLayout>
+        </ScrollView>
+
+        <Button
+            android:id="@+id/btn_apply_filters"
+            android:text="Apply"
+            android:background="@color/colorAccent"
+            android:textColor="@android:color/white"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="@dimen/general_margin"
+            android:layout_marginBottom="@dimen/general_margin"
+            android:paddingLeft="32dp"
+            android:paddingRight="32dp"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp" />
+
+        <Button
+            android:id="@+id/btn_clear_filters"
+            android:text="Clear"
+            android:layout_alignParentBottom="true"
+            android:layout_toLeftOf="@id/btn_apply_filters"
+            android:background="@color/colorAccent"
+            android:textColor="@android:color/white"
+            android:layout_marginRight="@dimen/general_margin"
+            android:layout_marginBottom="@dimen/general_margin"
+            android:paddingLeft="32dp"
+            android:paddingRight="32dp"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp" />
+
+    </RelativeLayout>
+
+</android.support.design.widget.CoordinatorLayout>

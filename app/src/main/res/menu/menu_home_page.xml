@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/home_menu_search"
+        android:title="Search"
+        android:icon="@drawable/ic_search_white_24dp"
+        app:showAsAction="always" />
+    <item android:id="@+id/home_menu_sort"
+        android:title="Sort"
+        app:showAsAction="never"
+        android:icon="@drawable/ic_sort_white_24dp">
+        <menu>
+            <item android:id="@+id/home_menu_sort_time"
+                android:title="Newest first" />
+            <item android:id="@+id/home_menu_sort_title"
+                android:title="By Title" />
+            <item android:id="@+id/home_menu_sort_publisher"
+                android:title="By Publisher" />
+        </menu>
+    </item>
+    <item android:id="@+id/home_menu_filter"
+        android:title="Filter"
+        app:showAsAction="never"
+        android:icon="@drawable/ic_tune_white_24dp" />
+</menu>

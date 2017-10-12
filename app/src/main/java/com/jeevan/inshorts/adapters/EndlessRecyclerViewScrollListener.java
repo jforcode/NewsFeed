@@ -6,34 +6,17 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 
 public abstract class EndlessRecyclerViewScrollListener extends RecyclerView.OnScrollListener {
-    // The minimum amount of items to have below your current scroll position
-    // before loading more.
-    private int visibleThreshold = 5;
-    // The current offset index of data you have loaded
-    private int currentPage = 1;
-    // The total number of items in the dataset after the last load
-    private int previousTotalItemCount = 0;
-    // True if we are still waiting for the last set of data to load.
-    private boolean loading = true;
-    // Sets the starting page index
-    private int startingPageIndex = 1;
-    // threshold to show the go to top button
-    private int topButtonThreshold = 3;
-
     RecyclerView.LayoutManager mLayoutManager;
+    private boolean loading;
+    // last loaded page, initially no page is there in list, hence 0
+    private int lastLoadedPage = 0;
+    // load if the no of items after current scroll position is this threshold
+    private int loadingThreshold = 5;
+    // if the current scroll position is at this threshold, show the go to top button
+    private int topButtonVisibilityThreshold = 10;
 
     public EndlessRecyclerViewScrollListener(LinearLayoutManager layoutManager) {
         this.mLayoutManager = layoutManager;
-    }
-
-    public EndlessRecyclerViewScrollListener(GridLayoutManager layoutManager) {
-        this.mLayoutManager = layoutManager;
-        visibleThreshold = visibleThreshold * layoutManager.getSpanCount();
-    }
-
-    public EndlessRecyclerViewScrollListener(StaggeredGridLayoutManager layoutManager) {
-        this.mLayoutManager = layoutManager;
-        visibleThreshold = visibleThreshold * layoutManager.getSpanCount();
     }
 
     public int getMaxSpaceTakingItem(int[] lastVisibleItemPositions) {
@@ -54,61 +37,49 @@ public abstract class EndlessRecyclerViewScrollListener extends RecyclerView.OnS
     // but first we check if we are waiting for the previous load to finish.
     @Override
     public void onScrolled(RecyclerView view, int dx, int dy) {
-        int lastVisibleItemPosition = 0, firstVisibleItemPosition = 0;
+        int lastVisibleItemPosition = 0;
         int totalItemCount = mLayoutManager.getItemCount();
 
         if (mLayoutManager instanceof StaggeredGridLayoutManager) {
             int[] lastVisibleItemPositions = ((StaggeredGridLayoutManager) mLayoutManager).findLastVisibleItemPositions(null);
             lastVisibleItemPosition = getMaxSpaceTakingItem(lastVisibleItemPositions);
-            int[] firstVisibleItemPositions = ((StaggeredGridLayoutManager) mLayoutManager).findFirstVisibleItemPositions(null);
-            firstVisibleItemPosition = getMaxSpaceTakingItem(firstVisibleItemPositions);
         } else if (mLayoutManager instanceof GridLayoutManager) {
             lastVisibleItemPosition = ((GridLayoutManager) mLayoutManager).findLastVisibleItemPosition();
-            firstVisibleItemPosition = ((GridLayoutManager) mLayoutManager).findFirstVisibleItemPosition();
         } else if (mLayoutManager instanceof LinearLayoutManager) {
             lastVisibleItemPosition = ((LinearLayoutManager) mLayoutManager).findLastVisibleItemPosition();
-            firstVisibleItemPosition = ((LinearLayoutManager) mLayoutManager).findFirstVisibleItemPosition();
         }
 
-        // If the total item count is zero and the previous isn't, assume the
-        // list is invalidated and should be reset back to initial state
-        if (totalItemCount < previousTotalItemCount) {
-            this.currentPage = this.startingPageIndex;
-            this.previousTotalItemCount = totalItemCount;
-            if (totalItemCount == 0) {
-                this.loading = true;
-            }
-        }
-        // If it’s still loading, we check to see if the dataset count has
-        // changed, if so we conclude it has finished loading and update the current page
-        // number and total item count.
-        if (loading && (totalItemCount > previousTotalItemCount)) {
-            loading = false;
-            previousTotalItemCount = totalItemCount;
-        }
-
-        // If it isn’t currently loading, we check to see if we have breached
-        // the visibleThreshold and need to reload more data.
-        // If we do need to reload some more data, we execute onLoadMore to fetch the data.
-        // threshold should reflect how many total columns there are too
-        if (!loading && (lastVisibleItemPosition + visibleThreshold) > totalItemCount) {
-            currentPage++;
-            onLoadMore(currentPage, totalItemCount, view);
+        if (!loading && lastVisibleItemPosition + loadingThreshold > totalItemCount) {
             loading = true;
+            onLoadMore(lastLoadedPage + 1, totalItemCount, view);
         }
 
-        toggleScrollToTopButton(firstVisibleItemPosition > topButtonThreshold);
+        if (lastVisibleItemPosition > topButtonVisibilityThreshold) {
+            toggleScrollToTop(true);
+        } else {
+            toggleScrollToTop(false);
+        }
     }
 
-    // Call this method whenever performing new searches
+    // load the page specified by pageNum
+    // call postLoad after loading the page
+    public abstract void onLoadMore(int pageNum, int totalItemsCount, RecyclerView view);
+
+    // change the scrollListener's state after loading a page
+    // is called after actual loading is done
+    public void postLoad() {
+        loading = false;
+        lastLoadedPage++;
+    }
+
     public void resetState() {
-        this.currentPage = this.startingPageIndex;
-        this.previousTotalItemCount = 0;
-        this.loading = true;
+        loading = false;
+        lastLoadedPage = 0;
     }
 
-    // Defines the process for actually loading more data based on page
-    public abstract void onLoadMore(int page, int totalItemsCount, RecyclerView view);
+    public abstract void toggleScrollToTop(boolean enable);
 
-    public abstract void toggleScrollToTopButton(boolean enabled);
+    public void setLoading(boolean loading) {
+        this.loading = loading;
+    }
 }

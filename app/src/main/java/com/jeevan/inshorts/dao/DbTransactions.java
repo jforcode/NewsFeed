@@ -59,7 +59,7 @@ public class DbTransactions {
     // get the page at index currPage, where each page has size = recordSize
     // sort on timestamp as latest first
     // if category is provided
-    public List<NewsFeed> getNewsFeed(int recordSize, int currPage, String category) {
+    public List<NewsFeed> getNewsFeed(int recordSize, int currPage, String sortBy, String category) {
         List<NewsFeed> newsFeeds = new ArrayList<>();
         int pageStart = (currPage - 1)*recordSize + 1;
         StringBuilder query = new StringBuilder();
@@ -70,11 +70,12 @@ public class DbTransactions {
                 .append(" ON NF.").append(NewsFeedTable.KEY_TITLE).append(" = BK.").append(BookmarksTable.KEY_TITLE);
 
         if (category != null && !category.isEmpty()) {
-            query.append(" WHERE NF.").append(NewsFeedTable.KEY_CATEGORY).append(" = ?");
-            args = new String[]{category};
+            query.append(" WHERE NF.").append(NewsFeedTable.KEY_CATEGORY).append(" IN (").append(category).append(")");
         }
-        query.append(" ORDER BY ").append(NewsFeedTable.KEY_TIMESTAMP).append(" DESC ")
-                .append(" LIMIT ").append(pageStart).append(",").append(recordSize);
+        query.append(" ORDER BY ").append(sortBy);
+        if (sortBy.equals(NewsFeedTable.KEY_TIMESTAMP)) query.append(" DESC ");
+        query.append(" LIMIT ").append(pageStart).append(",").append(recordSize);
+        Log.d(TAG, query.toString());
         Cursor feedCursor = db.rawQuery(query.toString(), args);
         while (feedCursor.moveToNext()) {
             NewsFeed feed = getNewsFeedFromCursor(feedCursor);
@@ -85,7 +86,6 @@ public class DbTransactions {
     }
 
     public void saveNewsFeed(List<NewsFeed> feed) {
-        db.execSQL(NewsFeedTable.CLEAR_QUERY);
         for (NewsFeed newsFeed : feed) {
             db.insert(NewsFeedTable.TABLE_NAME, null, getNewsFeedContentValues(newsFeed));
         }
@@ -118,5 +118,9 @@ public class DbTransactions {
             bookmarks.add(newsFeed);
         }
         return bookmarks;
+    }
+
+    public void clearNewsFeed() {
+        db.execSQL(NewsFeedTable.CLEAR_QUERY);
     }
 }

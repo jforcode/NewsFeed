@@ -50,7 +50,7 @@ public class NewsFeedAdapter extends RecyclerView.Adapter<NewsFeedViewHolder> {
     @Override
     public void onBindViewHolder(final NewsFeedViewHolder holder, int position) {
         final NewsFeed news = newsFeeds.get(position);
-        holder.txtTitle.setText(news.getTitle());
+        holder.txtTitle.setText(news.getCategory() + " " + news.getTitle());
         holder.txtPublisher.setText(news.getPublisher());
         holder.imgBookmark.setOnClickListener(new View.OnClickListener() {
             @Override

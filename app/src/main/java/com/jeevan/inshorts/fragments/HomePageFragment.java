@@ -3,6 +3,7 @@ package com.jeevan.inshorts.fragments;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
@@ -13,20 +14,24 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
 import com.jeevan.inshorts.R;
+import com.jeevan.inshorts.activities.FilterActivity;
+import com.jeevan.inshorts.activities.MainActivity;
 import com.jeevan.inshorts.adapters.EndlessRecyclerViewScrollListener;
 import com.jeevan.inshorts.adapters.NewsFeedAdapter;
 import com.jeevan.inshorts.api.NewsAPI;
 import com.jeevan.inshorts.api.NewsAPIClient;
 import com.jeevan.inshorts.dao.DbTransactions;
 import com.jeevan.inshorts.dao.NewsFeed;
-import com.jeevan.inshorts.interfaces.BookmarkEventListener;
+import com.jeevan.inshorts.dao.NewsFeedTable;
 import com.jeevan.inshorts.interfaces.MainActivityChangeListener;
+import com.jeevan.inshorts.util.Constants;
 
 import java.io.IOException;
 import java.util.List;
@@ -63,6 +68,7 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
     EndlessRecyclerViewScrollListener scrollListener;
     ProgressDialog progressDialog;
     int DEFAULT_RECORD_SIZE = 20;
+    String sortBy, filterCategory;
 
     public HomePageFragment() {
         // Required empty public constructor
@@ -79,6 +85,7 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
         if (context instanceof MainActivityChangeListener) {
             ((MainActivityChangeListener) context).setToolbarTitle("Home");
         }
+        sortBy = NewsFeedTable.KEY_TIMESTAMP;
 
         newsFeedAdapter = new NewsFeedAdapter(getActivity());
         newsFeedList.setAdapter(newsFeedAdapter);
@@ -91,12 +98,8 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
             }
 
             @Override
-            public void toggleScrollToTopButton(boolean visible) {
-                if (visible) {
-                    btnScrollToTop.setVisibility(View.VISIBLE);
-                } else {
-                    btnScrollToTop.setVisibility(View.GONE);
-                }
+            public void toggleScrollToTop(boolean enable) {
+                btnScrollToTop.setVisibility(enable ? View.VISIBLE : View.GONE);
             }
         };
         newsFeedList.addOnScrollListener(scrollListener);
@@ -120,6 +123,11 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
 
     private void refreshFeed() {
         // retrofit to fetch the data
+        progressDialog = new ProgressDialog(context);
+        progressDialog.setTitle("Loading");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
         NewsAPI client = NewsAPIClient.getRetrofit().create(NewsAPI.class);
         Call<List<NewsFeed>> call = client.getNewsFeed();
         call.enqueue(new Callback<List<NewsFeed>>() {
@@ -129,37 +137,34 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
                     errorLayout.setVisibility(View.INVISIBLE);
                     newsFeedRefreshLayout.setVisibility(View.VISIBLE);
                     List<NewsFeed> newsFeed = response.body();
+                    dbTransactions.clearNewsFeed();
                     dbTransactions.saveNewsFeed(newsFeed);
-                    newsFeedAdapter.setNewsFeed(null);
+                    resetNewsFeedList();
                     loadPageFromDB(1);
 
                 } else {
-                    newsFeedAdapter.setNewsFeed(null);
+                    resetNewsFeedList();
                     errorLayout.setVisibility(View.VISIBLE);
+                    btnTryAgain.setVisibility(View.VISIBLE);
                     newsFeedRefreshLayout.setVisibility(View.INVISIBLE);
                     try {
                         txtError.setText(response.errorBody().string());
                     } catch (IOException e) {
                         txtError.setText(R.string.generic_error_msg);
                     }
-                }
-                newsFeedRefreshLayout.setRefreshing(false);
-                if (progressDialog != null) {
-                    progressDialog.cancel();
+                    cancelAllLoadingIndicators();
                 }
             }
 
             @Override
             public void onFailure(Call<List<NewsFeed>> call, Throwable t) {
-                newsFeedAdapter.setNewsFeed(null);
+                resetNewsFeedList();
                 errorLayout.setVisibility(View.VISIBLE);
+                btnTryAgain.setVisibility(View.VISIBLE);
                 newsFeedRefreshLayout.setVisibility(View.INVISIBLE);
                 // TODO: check wether it is an internet error
                 txtError.setText(R.string.no_internet_error_msg);
-                newsFeedRefreshLayout.setRefreshing(false);
-                if (progressDialog != null) {
-                    progressDialog.cancel();
-                }
+                cancelAllLoadingIndicators();
             }
         });
     }
@@ -190,9 +195,90 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                newsFeedAdapter.addItems(dbTransactions.getNewsFeed(DEFAULT_RECORD_SIZE, pageNum, null));
+                newsFeedAdapter.addItems(dbTransactions.getNewsFeed(DEFAULT_RECORD_SIZE, pageNum, sortBy, filterCategory));
+                scrollListener.postLoad();
+                cancelAllLoadingIndicators();
+                checkForEmptyList();
             }
-        }, 2000);
+        }, 1000);
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_home_page, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.home_menu_filter:
+                Intent sortIntent = new Intent(context, FilterActivity.class);
+                sortIntent.putExtra(Constants.EX_EXISTING_FILTERS, filterCategory);
+                ((MainActivity) context).startActivityForResult(sortIntent, Constants.RQ_FILTER);
+                break;
+            case R.id.home_menu_sort_time:
+                sortBy = NewsFeedTable.KEY_TIMESTAMP;
+                applySortAndFilter(null);
+                break;
+            case R.id.home_menu_sort_title:
+                sortBy = NewsFeedTable.KEY_TITLE;
+                applySortAndFilter(null);
+                break;
+            case R.id.home_menu_sort_publisher:
+                sortBy = NewsFeedTable.KEY_PUBLISHER;
+                applySortAndFilter(null);
+                break;
+        }
+        return true;
+    }
+
+    public void applySortAndFilter(Intent sortFilterData) {
+        if (sortFilterData != null) {
+            // FIXME: this can be better
+            StringBuilder filterCategorySB = new StringBuilder();
+            if (sortFilterData.getBooleanExtra(Constants.CAT_BUSINESS, false)) {
+                filterCategorySB.append("'b',");
+            }
+            if (sortFilterData.getBooleanExtra(Constants.CAT_TECH, false)) {
+                filterCategorySB.append("'t',");
+            }
+            if (sortFilterData.getBooleanExtra(Constants.CAT_ENTERTAINMENT, false)) {
+                filterCategorySB.append("'e',");
+            }
+            if (sortFilterData.getBooleanExtra(Constants.CAT_SPORTS, false)) {
+                filterCategorySB.append("'s',");
+            }
+            if (filterCategorySB.length() > 0) {
+                filterCategorySB.deleteCharAt(filterCategorySB.length() - 1);
+            }
+            filterCategory = filterCategorySB.toString();
+        }
+        resetNewsFeedList();
+        loadPageFromDB(1);
+    }
+
+    private void resetNewsFeedList() {
+        newsFeedAdapter.setNewsFeed(null);
+        scrollListener.resetState();
+    }
+
+    private void cancelAllLoadingIndicators() {
+        newsFeedRefreshLayout.setRefreshing(false);
+        if (progressDialog != null) {
+            progressDialog.cancel();
+        }
+    }
+
+    private void checkForEmptyList() {
+        if (newsFeedAdapter.getItemCount() == 0) {
+            resetNewsFeedList();
+            errorLayout.setVisibility(View.VISIBLE);
+            newsFeedRefreshLayout.setVisibility(View.GONE);
+            txtError.setText("No records.");
+            btnTryAgain.setVisibility(View.GONE);
+        } else {
+            errorLayout.setVisibility(View.GONE);
+            newsFeedRefreshLayout.setVisibility(View.VISIBLE);
+        }
+    }
 }

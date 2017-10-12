@@ -1,5 +1,6 @@
 package com.jeevan.inshorts.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -9,6 +10,8 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.FrameLayout;
 
@@ -20,6 +23,7 @@ import com.jeevan.inshorts.fragments.CreditsFragment;
 import com.jeevan.inshorts.fragments.HomePageFragment;
 import com.jeevan.inshorts.interfaces.BookmarkEventListener;
 import com.jeevan.inshorts.interfaces.MainActivityChangeListener;
+import com.jeevan.inshorts.util.Constants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,7 +67,9 @@ public class MainActivity extends AppCompatActivity
         navDrawerMenu.setNavigationItemSelectedListener(this);
 
         mapFragments = new HashMap<>();
-        mapFragments.put(R.id.nav_menu_home, new FragmentMetaData(new HomePageFragment(), "HOME"));
+        HomePageFragment homePageFragment = new HomePageFragment();
+        homePageFragment.setHasOptionsMenu(true);
+        mapFragments.put(R.id.nav_menu_home, new FragmentMetaData(homePageFragment, "HOME"));
         mapFragments.put(R.id.nav_menu_bookmarks, new FragmentMetaData(new BookmarksFragment(), "BOOKMARKS"));
         mapFragments.put(R.id.nav_menu_credits, new FragmentMetaData(new CreditsFragment(), "CREDITS"));
 
@@ -120,6 +126,17 @@ public class MainActivity extends AppCompatActivity
 
         public String getTag() {
             return tag;
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == Constants.RQ_FILTER && resultCode == Constants.RT_FILTER) {
+            Fragment fragment = getSupportFragmentManager().findFragmentByTag("HOME");
+            if (fragment != null && fragment instanceof HomePageFragment) {
+                ((HomePageFragment) fragment).applySortAndFilter(data);
+            }
         }
     }
 }
