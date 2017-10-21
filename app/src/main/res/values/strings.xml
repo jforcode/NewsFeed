@@ -7,4 +7,5 @@
     <string name="no_internet_error_msg">Couldn\'t connect to the internet. Please check your internet connection and try again!</string>
     <string name="drawer_close">Close</string>
     <string name="drawer_open">Open</string>
+    <string name="searchable_hint">Search by Title or Publisher</string>
 </resources>

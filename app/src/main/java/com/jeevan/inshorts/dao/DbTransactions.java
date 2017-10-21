@@ -59,24 +59,42 @@ public class DbTransactions {
     // get the page at index currPage, where each page has size = recordSize
     // sort on timestamp as latest first
     // if category is provided
-    public List<NewsFeed> getNewsFeed(int recordSize, int currPage, String sortBy, String category) {
+    public List<NewsFeed> getNewsFeed(int recordSize, int currPage, String sortBy, String category, String searchQuery) {
         List<NewsFeed> newsFeeds = new ArrayList<>();
         int pageStart = (currPage - 1)*recordSize + 1;
         StringBuilder query = new StringBuilder();
-        String[] args = {};
-        query.append("SELECT NF.*, BK.").append(BookmarksTable.KEY_TITLE).append(" AS BOOKMARKED")
+        List<String> args = new ArrayList<>();
+        query.append("SELECT NF.*, BK.").append(BookmarksTable.KEY_TITLE).append(" AS BOOKMARKED ")
                 .append(" FROM ").append(NewsFeedTable.TABLE_NAME).append(" NF ")
                 .append(" LEFT OUTER JOIN ").append(BookmarksTable.TABLE_NAME).append(" BK ")
-                .append(" ON NF.").append(NewsFeedTable.KEY_TITLE).append(" = BK.").append(BookmarksTable.KEY_TITLE);
+                .append(" ON NF.").append(NewsFeedTable.KEY_TITLE).append(" = BK.").append(BookmarksTable.KEY_TITLE)
+                .append(" WHERE 1=1 ");
 
         if (category != null && !category.isEmpty()) {
-            query.append(" WHERE NF.").append(NewsFeedTable.KEY_CATEGORY).append(" IN (").append(category).append(")");
+            query.append(" AND NF.").append(NewsFeedTable.KEY_CATEGORY).append(" IN (").append(category).append(") ");
         }
-        query.append(" ORDER BY ").append(sortBy);
-        if (sortBy.equals(NewsFeedTable.KEY_TIMESTAMP)) query.append(" DESC ");
-        query.append(" LIMIT ").append(pageStart).append(",").append(recordSize);
+        if (searchQuery != null && !searchQuery.isEmpty()) {
+            query.append(" AND ( NF.").append(NewsFeedTable.KEY_TITLE).append(" LIKE '%").append(searchQuery).append("%'")
+                    .append(" OR NF.").append(NewsFeedTable.KEY_PUBLISHER).append(" LIKE '%").append(searchQuery).append("%')");
+        }
+
+        query.append(" ORDER BY  ");
+        if (sortBy == null || sortBy.isEmpty()) {
+            query.append(NewsFeedTable.KEY_TIMESTAMP + " DESC ");
+        } else {
+            query.append(sortBy + (sortBy.equals(NewsFeedTable.KEY_TIMESTAMP) ? " DESC " : ""));
+        }
+
+        query.append(" LIMIT ");
+        query.append(pageStart + "," + recordSize);
         Log.d(TAG, query.toString());
-        Cursor feedCursor = db.rawQuery(query.toString(), args);
+
+        String[] argsArr = new String[args.size()];
+        for (int i=0;i<args.size();i++) {
+            argsArr[i] = args.get(i);
+        }
+
+        Cursor feedCursor = db.rawQuery(query.toString(), argsArr);
         while (feedCursor.moveToNext()) {
             NewsFeed feed = getNewsFeedFromCursor(feedCursor);
             feed.setBookmarked(feedCursor.getString(feedCursor.getColumnIndex("BOOKMARKED")) != null);

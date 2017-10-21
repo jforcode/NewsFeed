@@ -12,18 +12,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <TextView
-            android:visibility="gone"
-            android:id="@+id/txt_category"
-            android:text="Business"
-            android:textColor="#FF0000"
-            android:layout_marginBottom="@dimen/general_margin"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
 
         <ImageView
             android:id="@+id/img_bookmark"
-            android:layout_below="@id/txt_category"
             android:src="@drawable/star_filled"
             android:layout_alignParentRight="true"
             android:layout_marginRight="@dimen/general_margin"
@@ -33,7 +24,6 @@
 
         <TextView
             android:id="@+id/txt_title"
-            android:layout_below="@id/txt_category"
             android:text="Some dummy title!"
             android:textColor="@android:color/primary_text_light"
             android:layout_toLeftOf="@id/img_bookmark"
@@ -46,12 +36,33 @@
         <TextView
             android:id="@+id/txt_publisher"
             android:text="Amazon.com"
+            android:textColor="@color/colorPrimaryDark"
             android:layout_below="@id/txt_title"
             android:layout_toLeftOf="@id/img_bookmark"
             android:layout_marginLeft="@dimen/general_margin"
             android:layout_marginRight="@dimen/general_margin"
-            android:layout_marginBottom="@dimen/general_margin"
             android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/txt_category"
+            android:text="Business"
+            android:textStyle="italic"
+            android:layout_below="@id/txt_publisher"
+            android:layout_marginLeft="@dimen/general_margin"
+            android:layout_marginTop="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/txt_timestamp"
+            android:layout_below="@id/txt_publisher"
+            android:layout_marginRight="@dimen/general_margin"
+            android:layout_marginBottom="@dimen/general_margin"
+            android:layout_marginTop="8dp"
+            android:layout_alignParentRight="true"
+            android:text="July 23, 2017"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
     </RelativeLayout>
 </android.support.v7.widget.CardView>

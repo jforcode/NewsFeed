@@ -13,6 +13,7 @@ import android.widget.Toast;
 import com.jeevan.inshorts.R;
 import com.jeevan.inshorts.dao.NewsFeed;
 import com.jeevan.inshorts.interfaces.BookmarkEventListener;
+import com.jeevan.inshorts.util.Util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,8 +51,17 @@ public class NewsFeedAdapter extends RecyclerView.Adapter<NewsFeedViewHolder> {
     @Override
     public void onBindViewHolder(final NewsFeedViewHolder holder, int position) {
         final NewsFeed news = newsFeeds.get(position);
-        holder.txtTitle.setText(news.getCategory() + " " + news.getTitle());
+        holder.txtTitle.setText(news.getTitle());
         holder.txtPublisher.setText(news.getPublisher());
+        String cat = "";
+        switch (news.getCategory().charAt(0)) {
+            case 'b': cat = "Business"; break;
+            case 't': cat = "Science & Technology"; break;
+            case 's': cat = "Sports"; break;
+            default: cat = "Others";
+        }
+        holder.txtCategory.setText(cat);
+        holder.txtTimestamp.setText(Util.getDateDisplayString(news.getTimeStamp()));
         holder.imgBookmark.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

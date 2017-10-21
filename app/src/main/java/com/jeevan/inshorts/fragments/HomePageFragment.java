@@ -2,6 +2,8 @@ package com.jeevan.inshorts.fragments;
 
 
 import android.app.ProgressDialog;
+import android.app.SearchManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,6 +13,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -19,35 +22,29 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.jeevan.inshorts.R;
 import com.jeevan.inshorts.activities.FilterActivity;
 import com.jeevan.inshorts.activities.MainActivity;
+import com.jeevan.inshorts.activities.SearchResultsActivity;
 import com.jeevan.inshorts.adapters.EndlessRecyclerViewScrollListener;
 import com.jeevan.inshorts.adapters.NewsFeedAdapter;
-import com.jeevan.inshorts.api.NewsAPI;
-import com.jeevan.inshorts.api.NewsAPIClient;
 import com.jeevan.inshorts.dao.DbTransactions;
-import com.jeevan.inshorts.dao.NewsFeed;
 import com.jeevan.inshorts.dao.NewsFeedTable;
 import com.jeevan.inshorts.interfaces.MainActivityChangeListener;
 import com.jeevan.inshorts.util.Constants;
 
-import java.io.IOException;
-import java.util.List;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+
 
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
+public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener, SearchView.OnQueryTextListener {
     @BindView(R.id.news_feed_swipe_refresh)
     SwipeRefreshLayout newsFeedRefreshLayout;
     @BindView(R.id.news_feed_list)
@@ -68,7 +65,7 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
     EndlessRecyclerViewScrollListener scrollListener;
     ProgressDialog progressDialog;
     int DEFAULT_RECORD_SIZE = 20;
-    String sortBy, filterCategory;
+    String sortBy, filterCategory, searchQuery;
 
     public HomePageFragment() {
         // Required empty public constructor
@@ -86,6 +83,7 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
             ((MainActivityChangeListener) context).setToolbarTitle("Home");
         }
         sortBy = NewsFeedTable.KEY_TIMESTAMP;
+        searchQuery = "";
 
         newsFeedAdapter = new NewsFeedAdapter(getActivity());
         newsFeedList.setAdapter(newsFeedAdapter);
@@ -128,6 +126,13 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
         progressDialog.setCancelable(false);
         progressDialog.show();
 
+        // for testing without internet connectivity
+        errorLayout.setVisibility(View.INVISIBLE);
+        newsFeedRefreshLayout.setVisibility(View.VISIBLE);
+        resetNewsFeedList();
+        loadPageFromDB(1);
+
+        /*
         NewsAPI client = NewsAPIClient.getRetrofit().create(NewsAPI.class);
         Call<List<NewsFeed>> call = client.getNewsFeed();
         call.enqueue(new Callback<List<NewsFeed>>() {
@@ -167,6 +172,7 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
                 cancelAllLoadingIndicators();
             }
         });
+        */
     }
 
     @OnClick(R.id.btn_try_again)
@@ -195,7 +201,7 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                newsFeedAdapter.addItems(dbTransactions.getNewsFeed(DEFAULT_RECORD_SIZE, pageNum, sortBy, filterCategory));
+                newsFeedAdapter.addItems(dbTransactions.getNewsFeed(DEFAULT_RECORD_SIZE, pageNum, sortBy, filterCategory, searchQuery));
                 scrollListener.postLoad();
                 cancelAllLoadingIndicators();
                 checkForEmptyList();
@@ -206,6 +212,8 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_home_page, menu);
+        SearchView searchView = (SearchView) menu.findItem(R.id.home_menu_search).getActionView();
+        searchView.setOnQueryTextListener(this);
     }
 
     @Override
@@ -280,5 +288,21 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
             errorLayout.setVisibility(View.GONE);
             newsFeedRefreshLayout.setVisibility(View.VISIBLE);
         }
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        searchQuery = query;
+        resetNewsFeedList();
+        loadPageFromDB(1);
+        return true;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        searchQuery = newText;
+        resetNewsFeedList();
+        loadPageFromDB(1);
+        return true;
     }
 }
