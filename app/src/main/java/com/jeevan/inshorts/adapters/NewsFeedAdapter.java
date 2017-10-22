@@ -81,6 +81,12 @@ public class NewsFeedAdapter extends RecyclerView.Adapter<NewsFeedViewHolder> {
         } else {
             holder.imgBookmark.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.star_blank));
         }
+        holder.txtShare.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                shareItem(news);
+            }
+        });
         holder.parent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -100,6 +106,14 @@ public class NewsFeedAdapter extends RecyclerView.Adapter<NewsFeedViewHolder> {
         this.newsFeeds.addAll(newsFeeds);
         notifyItemRangeInserted(itemCount, getItemCount());
         notifyItemRangeChanged(itemCount, getItemCount());
+    }
+
+    private void shareItem(NewsFeed news) {
+        Intent shareIntent = new Intent();
+        shareIntent.setAction(Intent.ACTION_SEND);
+        shareIntent.putExtra(Intent.EXTRA_TEXT, news.getTitle() + "\n- " + news.getPublisher() + "\n" + news.getUrl());
+        shareIntent.setType("text/plain");
+        context.startActivity(shareIntent);
     }
 
 }

@@ -14,6 +14,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -27,7 +28,6 @@ import android.widget.Toast;
 import com.jeevan.inshorts.R;
 import com.jeevan.inshorts.activities.FilterActivity;
 import com.jeevan.inshorts.activities.MainActivity;
-import com.jeevan.inshorts.activities.SearchResultsActivity;
 import com.jeevan.inshorts.adapters.EndlessRecyclerViewScrollListener;
 import com.jeevan.inshorts.adapters.NewsFeedAdapter;
 import com.jeevan.inshorts.dao.DbTransactions;
@@ -305,4 +305,5 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
         loadPageFromDB(1);
         return true;
     }
+
 }

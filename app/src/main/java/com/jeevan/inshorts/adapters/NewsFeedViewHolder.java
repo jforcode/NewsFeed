@@ -2,6 +2,7 @@ package com.jeevan.inshorts.adapters;
 
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.view.ContextMenu;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -24,9 +25,12 @@ class NewsFeedViewHolder extends RecyclerView.ViewHolder {
     TextView txtCategory;
     @BindView(R.id.txt_timestamp)
     TextView txtTimestamp;
+    @BindView(R.id.txt_share)
+    TextView txtShare;
 
     public NewsFeedViewHolder(View itemView) {
         super(itemView);
         ButterKnife.bind(this, itemView);
     }
+
 }

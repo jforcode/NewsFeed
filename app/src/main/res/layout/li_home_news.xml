@@ -12,22 +12,33 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <TextView
+            android:id="@+id/txt_category"
+            android:text="Business"
+            android:textStyle="italic"
+            android:layout_marginLeft="@dimen/general_margin"
+            android:layout_marginTop="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
 
         <ImageView
             android:id="@+id/img_bookmark"
             android:src="@drawable/star_filled"
             android:layout_alignParentRight="true"
             android:layout_marginRight="@dimen/general_margin"
-            android:layout_marginTop="@dimen/general_margin"
+            android:layout_marginTop="8dp"
+            android:layout_below="@id/txt_category"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
+
 
         <TextView
             android:id="@+id/txt_title"
             android:text="Some dummy title!"
             android:textColor="@android:color/primary_text_light"
+            android:layout_below="@id/txt_category"
             android:layout_toLeftOf="@id/img_bookmark"
-            android:layout_marginTop="@dimen/general_margin"
+            android:layout_marginTop="8dp"
             android:layout_marginLeft="@dimen/general_margin"
             android:layout_marginRight="@dimen/general_margin"
             android:layout_width="match_parent"
@@ -45,23 +56,27 @@
             android:layout_height="wrap_content" />
 
         <TextView
-            android:id="@+id/txt_category"
-            android:text="Business"
-            android:textStyle="italic"
-            android:layout_below="@id/txt_publisher"
+            android:id="@+id/txt_timestamp"
+            android:layout_marginRight="@dimen/general_margin"
+            android:layout_marginBottom="@dimen/general_margin"
+            android:layout_marginTop="@dimen/general_margin"
             android:layout_marginLeft="@dimen/general_margin"
-            android:layout_marginTop="8dp"
+            android:layout_below="@id/txt_publisher"
+            android:text="July 23, 2017"
+            android:textSize="12sp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
         <TextView
-            android:id="@+id/txt_timestamp"
-            android:layout_below="@id/txt_publisher"
-            android:layout_marginRight="@dimen/general_margin"
-            android:layout_marginBottom="@dimen/general_margin"
-            android:layout_marginTop="8dp"
+            android:id="@+id/txt_share"
+            android:text="Share"
+            android:textSize="12sp"
             android:layout_alignParentRight="true"
-            android:text="July 23, 2017"
+            android:layout_below="@id/txt_publisher"
+            android:layout_marginTop="@dimen/general_margin"
+            android:layout_marginBottom="@dimen/general_margin"
+            android:layout_marginLeft="@dimen/general_margin"
+            android:layout_marginRight="@dimen/general_margin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
     </RelativeLayout>
