@@ -1,5 +1,8 @@
 package com.jeevan.inshorts.dao;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -16,7 +19,7 @@ import com.google.gson.annotations.SerializedName;
 
  */
 
-public class NewsFeed {
+public class NewsFeed implements Parcelable {
     private long _id;
     @SerializedName("ID")
     private long id;
@@ -33,6 +36,34 @@ public class NewsFeed {
     @SerializedName("TIMESTAMP")
     private long timeStamp;
     private boolean bookmarked;
+
+    public NewsFeed() {
+
+    }
+
+    protected NewsFeed(Parcel in) {
+        _id = in.readLong();
+        id = in.readLong();
+        title = in.readString();
+        url = in.readString();
+        publisher = in.readString();
+        category = in.readString();
+        hostName = in.readString();
+        timeStamp = in.readLong();
+        bookmarked = in.readByte() != 0;
+    }
+
+    public static final Creator<NewsFeed> CREATOR = new Creator<NewsFeed>() {
+        @Override
+        public NewsFeed createFromParcel(Parcel in) {
+            return new NewsFeed(in);
+        }
+
+        @Override
+        public NewsFeed[] newArray(int size) {
+            return new NewsFeed[size];
+        }
+    };
 
     public long get_id() {
         return _id;
@@ -104,5 +135,23 @@ public class NewsFeed {
 
     public void setBookmarked(boolean bookmarked) {
         this.bookmarked = bookmarked;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(_id);
+        dest.writeLong(id);
+        dest.writeString(title);
+        dest.writeString(url);
+        dest.writeString(publisher);
+        dest.writeString(category);
+        dest.writeString(hostName);
+        dest.writeLong(timeStamp);
+        dest.writeByte((byte) (bookmarked ? 1 : 0));
     }
 }

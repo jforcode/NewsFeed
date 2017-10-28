@@ -2,8 +2,6 @@ package com.jeevan.inshorts.adapters;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,8 +9,11 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.jeevan.inshorts.R;
+import com.jeevan.inshorts.activities.WebViewActivity;
 import com.jeevan.inshorts.dao.NewsFeed;
 import com.jeevan.inshorts.interfaces.BookmarkEventListener;
+import com.jeevan.inshorts.interfaces.ListRemovalListener;
+import com.jeevan.inshorts.util.Constants;
 import com.jeevan.inshorts.util.Util;
 
 import java.util.ArrayList;
@@ -26,13 +27,15 @@ public class BookmarksAdapter extends RecyclerView.Adapter<NewsFeedViewHolder> {
     Context context;
     List<NewsFeed> newsFeeds;
     BookmarkEventListener bookmarkEventListener;
+    ListRemovalListener listRemovalListener;
 
-    public BookmarksAdapter(Context context) {
+    public BookmarksAdapter(Context context, ListRemovalListener listRemovalListener) {
         this.context = context;
         this.newsFeeds = new ArrayList<>();
         if (context instanceof BookmarkEventListener) {
             this.bookmarkEventListener = (BookmarkEventListener) context;
         }
+        this.listRemovalListener = listRemovalListener;
     }
 
     public void setNewsFeed(List<NewsFeed> newsFeeds) {
@@ -71,12 +74,19 @@ public class BookmarksAdapter extends RecyclerView.Adapter<NewsFeedViewHolder> {
                 newsFeeds.remove(position);
                 notifyItemRemoved(position);
                 notifyItemRangeChanged(position, changedCount);
+
+                if (getItemCount() == 0 && listRemovalListener != null) {
+                    listRemovalListener.showNoItemsLayout();
+                }
             }
         });
         holder.parent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(news.getUrl()));
+                Intent browserIntent = new Intent(context, WebViewActivity.class);
+                browserIntent.putExtra(Constants.IP_URL, news.getUrl());
+                browserIntent.putExtra(Constants.IP_TITLE, news.getTitle());
+                browserIntent.putExtra(Constants.IP_SUBTITLE, news.getHostName());
                 context.startActivity(browserIntent);
             }
         });

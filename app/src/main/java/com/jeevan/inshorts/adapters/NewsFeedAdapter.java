@@ -2,7 +2,6 @@ package com.jeevan.inshorts.adapters;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -11,8 +10,10 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.jeevan.inshorts.R;
+import com.jeevan.inshorts.activities.WebViewActivity;
 import com.jeevan.inshorts.dao.NewsFeed;
 import com.jeevan.inshorts.interfaces.BookmarkEventListener;
+import com.jeevan.inshorts.util.Constants;
 import com.jeevan.inshorts.util.Util;
 
 import java.util.ArrayList;
@@ -90,7 +91,10 @@ public class NewsFeedAdapter extends RecyclerView.Adapter<NewsFeedViewHolder> {
         holder.parent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(news.getUrl()));
+                Intent browserIntent = new Intent(context, WebViewActivity.class);
+                browserIntent.putExtra(Constants.IP_URL, news.getUrl());
+                browserIntent.putExtra(Constants.IP_TITLE, news.getTitle());
+                browserIntent.putExtra(Constants.IP_SUBTITLE, news.getHostName());
                 context.startActivity(browserIntent);
             }
         });

@@ -8,4 +8,6 @@
     <string name="drawer_close">Close</string>
     <string name="drawer_open">Open</string>
     <string name="searchable_hint">Search by Title or Publisher</string>
+    <string name="no_records_error_msg">No records found!</string>
+    <string name="no_bookmarks_error_msg">No bookmarks yet. Click on the star icon in feed to bookmark a feed.</string>
 </resources>

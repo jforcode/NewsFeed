@@ -8,12 +8,19 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.jeevan.inshorts.R;
 import com.jeevan.inshorts.adapters.BookmarksAdapter;
 import com.jeevan.inshorts.adapters.NewsFeedAdapter;
 import com.jeevan.inshorts.dao.DbTransactions;
+import com.jeevan.inshorts.dao.NewsFeed;
+import com.jeevan.inshorts.interfaces.ListRemovalListener;
 import com.jeevan.inshorts.interfaces.MainActivityChangeListener;
+
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -22,9 +29,15 @@ import butterknife.ButterKnife;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class BookmarksFragment extends Fragment {
+public class BookmarksFragment extends Fragment implements ListRemovalListener{
     @BindView(R.id.bookmarks_list)
     RecyclerView bookmarksList;
+    @BindView(R.id.error_layout)
+    View errorLayout;
+    @BindView(R.id.txt_error)
+    TextView txtError;
+    @BindView(R.id.btn_try_again)
+    Button btnTryAgain;
 
     DbTransactions dbTransactions;
     BookmarksAdapter bookmarksAdapter;
@@ -45,15 +58,30 @@ public class BookmarksFragment extends Fragment {
             ((MainActivityChangeListener) getActivity()).setToolbarTitle("Bookmarks");
         }
 
-        bookmarksAdapter = new BookmarksAdapter(getActivity());
+        bookmarksAdapter = new BookmarksAdapter(getActivity(), this);
         bookmarksList.setAdapter(bookmarksAdapter);
         bookmarksList.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        bookmarksAdapter.setNewsFeed(dbTransactions.getBookmarkedNewsFeed());
+        List<NewsFeed> bookmarked = dbTransactions.getBookmarkedNewsFeed();
+        if (bookmarked.size() == 0) {
+            errorLayout.setVisibility(View.VISIBLE);
+            btnTryAgain.setVisibility(View.GONE);
+            txtError.setText(R.string.no_bookmarks_error_msg);
+            bookmarksList.setVisibility(View.GONE);
+        } else {
+            errorLayout.setVisibility(View.GONE);
+            bookmarksList.setVisibility(View.VISIBLE);
+            bookmarksAdapter.setNewsFeed(bookmarked);
+        }
 
         return view;
     }
 
-
-
+    @Override
+    public void showNoItemsLayout() {
+        errorLayout.setVisibility(View.VISIBLE);
+        btnTryAgain.setVisibility(View.GONE);
+        txtError.setText(R.string.no_bookmarks_error_msg);
+        bookmarksList.setVisibility(View.GONE);
+    }
 }

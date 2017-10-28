@@ -2,19 +2,19 @@ package com.jeevan.inshorts.fragments;
 
 
 import android.app.ProgressDialog;
-import android.app.SearchManager;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -23,22 +23,29 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.jeevan.inshorts.R;
 import com.jeevan.inshorts.activities.FilterActivity;
 import com.jeevan.inshorts.activities.MainActivity;
 import com.jeevan.inshorts.adapters.EndlessRecyclerViewScrollListener;
 import com.jeevan.inshorts.adapters.NewsFeedAdapter;
+import com.jeevan.inshorts.api.NewsAPI;
+import com.jeevan.inshorts.api.NewsAPIClient;
 import com.jeevan.inshorts.dao.DbTransactions;
+import com.jeevan.inshorts.dao.NewsFeed;
 import com.jeevan.inshorts.dao.NewsFeedTable;
 import com.jeevan.inshorts.interfaces.MainActivityChangeListener;
 import com.jeevan.inshorts.util.Constants;
 
+import java.io.IOException;
+import java.util.List;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 
 /**
@@ -114,44 +121,80 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
         this.context = context;
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
+    private void refreshFeed() {
+        if (isConnectedToInternet()) {
+            if (!isDataLoaded()) {
+                loadDataFromAPI();
+            } else {
+                resetNewsFeedList();
+                loadPageFromDB(1);
+                cancelAllLoadingIndicators();
+            }
+        } else {
+            resetNewsFeedList();
+            cancelAllLoadingIndicators();
+            toggleFeedList(false);
+            txtError.setText(R.string.no_internet_error_msg);
+        }
     }
 
-    private void refreshFeed() {
+    @OnClick(R.id.btn_try_again)
+    public void tryAgain(View view) {
+        refreshFeed();
+    }
+
+    @Override
+    public void onRefresh() {
+        refreshFeed();
+    }
+
+    private void loadPageFromDB(final int pageNum) {
+        // dummy delay to show infinite scrolling
+        if (isConnectedToInternet()) {
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    newsFeedAdapter.addItems(dbTransactions.getNewsFeed(DEFAULT_RECORD_SIZE, pageNum, sortBy, filterCategory, searchQuery));
+                    scrollListener.postLoad();
+                    toggleFeedList(true);
+                    checkForEmptyList();
+                }
+            }, 1000);
+        } else {
+            toggleFeedList(false);
+            txtError.setText(R.string.no_internet_error_msg);
+        }
+    }
+
+    private void loadDataFromAPI() {
         // retrofit to fetch the data
         progressDialog = new ProgressDialog(context);
-        progressDialog.setTitle("Loading");
+        progressDialog.setMessage("Loading");
         progressDialog.setCancelable(false);
         progressDialog.show();
 
-        // for testing without internet connectivity
-        errorLayout.setVisibility(View.INVISIBLE);
-        newsFeedRefreshLayout.setVisibility(View.VISIBLE);
-        resetNewsFeedList();
-        loadPageFromDB(1);
-
-        /*
         NewsAPI client = NewsAPIClient.getRetrofit().create(NewsAPI.class);
         Call<List<NewsFeed>> call = client.getNewsFeed();
         call.enqueue(new Callback<List<NewsFeed>>() {
             @Override
             public void onResponse(Call<List<NewsFeed>> call, Response<List<NewsFeed>> response) {
                 if (response.isSuccessful()) {
-                    errorLayout.setVisibility(View.INVISIBLE);
-                    newsFeedRefreshLayout.setVisibility(View.VISIBLE);
+                    toggleFeedList(true);
                     List<NewsFeed> newsFeed = response.body();
                     dbTransactions.clearNewsFeed();
                     dbTransactions.saveNewsFeed(newsFeed);
                     resetNewsFeedList();
                     loadPageFromDB(1);
+                    cancelAllLoadingIndicators();
+                    PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext())
+                            .edit()
+                            .putBoolean(Constants.SHARED_PREF_FEED_LOADED, true)
+                            .commit();
 
                 } else {
                     resetNewsFeedList();
-                    errorLayout.setVisibility(View.VISIBLE);
-                    btnTryAgain.setVisibility(View.VISIBLE);
-                    newsFeedRefreshLayout.setVisibility(View.INVISIBLE);
+                    toggleFeedList(false);
                     try {
                         txtError.setText(response.errorBody().string());
                     } catch (IOException e) {
@@ -164,49 +207,43 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
             @Override
             public void onFailure(Call<List<NewsFeed>> call, Throwable t) {
                 resetNewsFeedList();
-                errorLayout.setVisibility(View.VISIBLE);
-                btnTryAgain.setVisibility(View.VISIBLE);
-                newsFeedRefreshLayout.setVisibility(View.INVISIBLE);
-                // TODO: check wether it is an internet error
-                txtError.setText(R.string.no_internet_error_msg);
+                toggleFeedList(false);
+                txtError.setText(t.getLocalizedMessage());
                 cancelAllLoadingIndicators();
             }
         });
-        */
     }
 
-    @OnClick(R.id.btn_try_again)
-    public void tryAgain(View view) {
-        refreshFeed();
-    }
-
-    @OnClick(R.id.btn_go_to_top)
-    public void scrollToTop(View view) {
-        if (newsFeedAdapter.getItemCount() > 0) {
-            if (newsFeedAdapter.getItemCount() > 20) {
-                newsFeedList.scrollToPosition(20);
-            }
-            newsFeedList.smoothScrollToPosition(0);
+    private void toggleFeedList(boolean showFeed) {
+        if (showFeed) {
+            errorLayout.setVisibility(View.GONE);
+            newsFeedRefreshLayout.setVisibility(View.VISIBLE);
+        } else {
+            errorLayout.setVisibility(View.VISIBLE);
+            newsFeedRefreshLayout.setVisibility(View.GONE);
         }
     }
 
-    @Override
-    public void onRefresh() {
-        refreshFeed();
+    private void resetNewsFeedList() {
+        newsFeedAdapter.setNewsFeed(null);
+        scrollListener.resetState();
     }
 
-    private void loadPageFromDB(final int pageNum) {
-        // dummy delay to show infinite scrolling
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                newsFeedAdapter.addItems(dbTransactions.getNewsFeed(DEFAULT_RECORD_SIZE, pageNum, sortBy, filterCategory, searchQuery));
-                scrollListener.postLoad();
-                cancelAllLoadingIndicators();
-                checkForEmptyList();
-            }
-        }, 1000);
+    private void cancelAllLoadingIndicators() {
+        newsFeedRefreshLayout.setRefreshing(false);
+        if (progressDialog != null) {
+            progressDialog.cancel();
+        }
+    }
+
+    private void checkForEmptyList() {
+        if (newsFeedAdapter.getItemCount() == 0) {
+            resetNewsFeedList();
+            toggleFeedList(false);
+            txtError.setText(R.string.no_records_error_msg);
+        } else {
+            toggleFeedList(true);
+        }
     }
 
     @Override
@@ -242,19 +279,13 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
 
     public void applySortAndFilter(Intent sortFilterData) {
         if (sortFilterData != null) {
-            // FIXME: this can be better
+            String[] keys = {Constants.CAT_BUSINESS, Constants.CAT_TECH, Constants.CAT_ENTERTAINMENT, Constants.CAT_SPORTS};
+            String[] values = {"'b',", "'t',", "'e',", "'s',"};
             StringBuilder filterCategorySB = new StringBuilder();
-            if (sortFilterData.getBooleanExtra(Constants.CAT_BUSINESS, false)) {
-                filterCategorySB.append("'b',");
-            }
-            if (sortFilterData.getBooleanExtra(Constants.CAT_TECH, false)) {
-                filterCategorySB.append("'t',");
-            }
-            if (sortFilterData.getBooleanExtra(Constants.CAT_ENTERTAINMENT, false)) {
-                filterCategorySB.append("'e',");
-            }
-            if (sortFilterData.getBooleanExtra(Constants.CAT_SPORTS, false)) {
-                filterCategorySB.append("'s',");
+            for (int i=0;i<keys.length;i++) {
+                if (sortFilterData.getBooleanExtra(keys[i], false)) {
+                    filterCategorySB.append(values[i]);
+                }
             }
             if (filterCategorySB.length() > 0) {
                 filterCategorySB.deleteCharAt(filterCategorySB.length() - 1);
@@ -265,28 +296,23 @@ public class HomePageFragment extends Fragment implements SwipeRefreshLayout.OnR
         loadPageFromDB(1);
     }
 
-    private void resetNewsFeedList() {
-        newsFeedAdapter.setNewsFeed(null);
-        scrollListener.resetState();
+    private boolean isConnectedToInternet() {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
     }
 
-    private void cancelAllLoadingIndicators() {
-        newsFeedRefreshLayout.setRefreshing(false);
-        if (progressDialog != null) {
-            progressDialog.cancel();
-        }
+    private boolean isDataLoaded() {
+        return PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext()).getBoolean(Constants.SHARED_PREF_FEED_LOADED, false);
     }
 
-    private void checkForEmptyList() {
-        if (newsFeedAdapter.getItemCount() == 0) {
-            resetNewsFeedList();
-            errorLayout.setVisibility(View.VISIBLE);
-            newsFeedRefreshLayout.setVisibility(View.GONE);
-            txtError.setText("No records.");
-            btnTryAgain.setVisibility(View.GONE);
-        } else {
-            errorLayout.setVisibility(View.GONE);
-            newsFeedRefreshLayout.setVisibility(View.VISIBLE);
+    @OnClick(R.id.btn_go_to_top)
+    public void scrollToTop(View view) {
+        if (newsFeedAdapter.getItemCount() > 0) {
+            if (newsFeedAdapter.getItemCount() > 20) {
+                newsFeedList.scrollToPosition(20);
+            }
+            newsFeedList.smoothScrollToPosition(0);
         }
     }
 

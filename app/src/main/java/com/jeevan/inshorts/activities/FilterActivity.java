@@ -72,8 +72,13 @@ public class FilterActivity extends AppCompatActivity {
 
     @OnClick(R.id.btn_clear_filters)
     public void clearFilters(View view) {
-        // empty to denote clear filters
-        setResult(Constants.RT_FILTER);
+        Intent result = new Intent();
+        result.putExtra(Constants.CAT_BUSINESS, cbBusiness.isChecked());
+        result.putExtra(Constants.CAT_TECH, cbTech.isChecked());
+        result.putExtra(Constants.CAT_ENTERTAINMENT, cbEntertainment.isChecked());
+        result.putExtra(Constants.CAT_SPORTS, cbSports.isChecked());
+
+        setResult(Constants.RT_FILTER, result);
         finish();
     }
 

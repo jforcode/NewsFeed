@@ -1,7 +1,16 @@
-<android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:clipToPadding="false"
-    android:paddingBottom="@dimen/general_margin"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:background="#EEEEEE"
-    android:id="@+id/bookmarks_list"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" />
+    android:layout_height="match_parent">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/bookmarks_list"
+        android:paddingBottom="@dimen/general_margin"
+        android:clipToPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <include layout="@layout/layout_error"
+        android:visibility="invisible"
+        android:id="@+id/error_layout"/>
+</RelativeLayout>
