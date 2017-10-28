@@ -4,11 +4,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorPrimary"
-    tools:context="com.jeevan.inshorts.activities.SplashActivity">
+    tools:context="com.jeevan.NewsFeed.activities.SplashActivity">
 
     <TextView
         android:gravity="center"
-        android:text="InShorts"
+        android:text="NewsFeed"
         android:textColor="@android:color/white"
         android:textSize="32sp"
         android:layout_marginBottom="48dp"

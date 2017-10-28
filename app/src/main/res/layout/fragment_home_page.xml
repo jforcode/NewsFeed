@@ -9,7 +9,7 @@
         android:id="@+id/news_feed_swipe_refresh"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="com.jeevan.inshorts.fragments.HomePageFragment">
+        tools:context="com.jeevan.NewsFeed.fragments.HomePageFragment">
 
         <android.support.v7.widget.RecyclerView
             android:clipToPadding="false"
