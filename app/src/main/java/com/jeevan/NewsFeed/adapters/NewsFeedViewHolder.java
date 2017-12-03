@@ -4,6 +4,7 @@ import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.jeevan.NewsFeed.R;
@@ -13,7 +14,7 @@ import butterknife.ButterKnife;
 
 class NewsFeedViewHolder extends RecyclerView.ViewHolder {
     @BindView(R.id.li_home_news)
-    CardView parent;
+    RelativeLayout parent;
     @BindView(R.id.txt_title)
     TextView txtTitle;
     @BindView(R.id.txt_publisher)
